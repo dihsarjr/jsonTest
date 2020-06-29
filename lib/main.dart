@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -14,58 +13,68 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  Future<List<Todo>> _getTodo() async {
-    var data = await http.get("https://jsonplaceholder.typicode.com/todos");
-    var jsonData = json.decode(data.body);
-    List<Todo> todo = [];
-    for (var u in jsonData) {
-      Todo todo = Todo(u["index"], u["title"]);
+  List<Note> _notes = List<Note>();
+
+  Future<List<Note>> fetchNote() async {
+    var url = 'https://jsonplaceholder.typicode.com/todos';
+    var response = await http.get(url);
+    var note = List<Note>();
+    if (response.statusCode == 200) {
+      var notesJson = json.decode(response.body);
+      for (var noteJson in notesJson) {
+        note.add(Note.fromJson(noteJson));
+      }
     }
-    print(todo.length.toString());
-    return todo;
+    return note;
+  }
+
+  @override
+  void initState() {
+    fetchNote().then((value) {
+      setState(() {
+        _notes.addAll(value);
+      });
+    });
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
       home: Scaffold(
         appBar: AppBar(
           title: Text('Json'),
         ),
-        body: Container(
-          child: FutureBuilder(
-              future: _getTodo(),
-              builder: (BuildContext context, AsyncSnapshot snapshot) {
-                return snapshot.data == null
-                    ? Center(
-                        child: Container(
-                          height: 300,
-                          color: Colors.black,
-                        ),
-                      )
-                    : ListView.builder(
-                        itemCount: snapshot.data.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          return Card(
-                              child: Text(
-                            snapshot.data[index].index.toString(),
-                          ));
-                        });
-              }),
+        body: ListView.builder(
+          itemBuilder: (context, index) {
+            return Card(
+              color: Colors.red,
+              elevation: 15,
+              child: Column(
+                children: <Widget>[
+                  Text(
+                    _notes[index].title,
+                    style: TextStyle(fontSize: 20),
+                  )
+                ],
+              ),
+            );
+          },
+          itemCount: _notes.length,
         ),
       ),
     );
   }
 }
 
-class Todo {
-  final int index;
-  final String title;
+class Note {
+  String title;
+  String text;
 
-  Todo(this.index, this.title);
+  Note(this.title, this.text);
+
+  Note.fromJson(Map<String, dynamic> json) {
+    title = json['title'];
+    text = json['text'];
+  }
 }
