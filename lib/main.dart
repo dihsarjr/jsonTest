@@ -55,6 +55,10 @@ class _MyAppState extends State<MyApp> {
                   Text(
                     _notes[index].title,
                     style: TextStyle(fontSize: 20),
+                  ),
+                  Text(
+                    _notes[index].text,
+                    style: TextStyle(fontSize: 20),
                   )
                 ],
               ),
